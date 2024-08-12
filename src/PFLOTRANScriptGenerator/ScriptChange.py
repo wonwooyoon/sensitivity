@@ -14,6 +14,7 @@ def change_input(default_filename, output_filename, updated_data, components):
     granite_mineral_target = None
     pressure_grad_target = None
     mixing_ratio_target = None
+    tolerance_traget = None
 
     for i, line in enumerate(lines):
 
@@ -29,6 +30,8 @@ def change_input(default_filename, output_filename, updated_data, components):
             pressure_grad_target = i
         if 'CONSTRAINT seawater_conc' in line:
             mixing_ratio_target = i + 2
+        if 'ATOL 1e-13' in line:
+            tolerance_traget = i
 
     density_based_porosity = 1 - (updated_data[1]/2750)
     density_based_smectite = 0.806 * (1-density_based_porosity)
@@ -37,6 +40,8 @@ def change_input(default_filename, output_filename, updated_data, components):
     density_based_gypsum = 0.00782 * (1-density_based_porosity)
     density_based_pyrite = 0.00036 * (1-density_based_porosity) * updated_data[3]
 
+    if updated_data[0] <= 5e-17:
+        lines[tolerance_traget] = '    ATOL 1e-15\n'
     if fracture_perm_target is not None:
         lines[fracture_perm_target] = f'    PERM_ISO {updated_data[0]} ! unit: m^2\n'
     if bentonite_poro_target is not None:
