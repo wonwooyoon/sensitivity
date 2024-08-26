@@ -15,6 +15,7 @@ def change_input(default_filename, output_filename, updated_data, components):
     pressure_grad_target = None
     mixing_ratio_target = None
     tolerance_traget = None
+    timestep_target = None
 
     for i, line in enumerate(lines):
 
@@ -32,6 +33,8 @@ def change_input(default_filename, output_filename, updated_data, components):
             mixing_ratio_target = i + 2
         if 'ATOL 1e-13' in line:
             tolerance_traget = i
+        if 'MAXIMUM_TIMESTEP_SIZE 2.d-2 yr at 10 yr' in line:
+            timestep_target = i
 
     density_based_porosity = 1 - (updated_data[1]/2750)
     density_based_smectite = 0.806 * (1-density_based_porosity)
@@ -42,13 +45,14 @@ def change_input(default_filename, output_filename, updated_data, components):
 
     if updated_data[0] <= 5e-17:
         lines[tolerance_traget] = '    ATOL 1e-15\n'
+    elif updated_data[0] >= 1e-15:
+        lines[timestep_target] = '    MAXIMUM_TIMESTEP_SIZE 5.d-3 yr at 10 yr\n'
     if fracture_perm_target is not None:
         lines[fracture_perm_target] = f'    PERM_ISO {updated_data[0]} ! unit: m^2\n'
     if bentonite_poro_target is not None:
         lines[bentonite_poro_target] = f'   POROSITY {density_based_porosity}\n'
     if pressure_grad_target is not None:
         lines[pressure_grad_target] = f'    LIQUID_PRESSURE {updated_data[2]} ! unit: Pa\n'
-
     if bentonite_mineral_target is not None:
 
         lines[bentonite_mineral_target] = f'    Smectite_MX80 	{density_based_smectite}	8.5 	m^2/g\n'
