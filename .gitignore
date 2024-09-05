@@ -4,3 +4,4 @@ sample_*.h5
 *.tec
 *.out
 *.pft
+*.csv
