@@ -45,8 +45,11 @@ def change_input(default_filename, output_filename, updated_data, components):
 
     if updated_data[0] <= 5e-17:
         lines[tolerance_traget] = '    ATOL 1e-15\n'
-    elif updated_data[0] >= 1e-15:
+    elif updated_data[0] >= 5e-16:
         lines[timestep_target] = '    MAXIMUM_TIMESTEP_SIZE 5.d-3 yr at 10 yr\n'
+    elif updated_data[0] >= 1e-16:
+        lines[timestep_target] = '    MAXIMUM_TIMESTEP_SIZE 1.d-2 yr at 10 yr\n'
+
     if fracture_perm_target is not None:
         lines[fracture_perm_target] = f'    PERM_ISO {updated_data[0]} ! unit: m^2\n'
     if bentonite_poro_target is not None:
