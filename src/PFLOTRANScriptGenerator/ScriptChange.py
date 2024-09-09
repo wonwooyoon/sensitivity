@@ -38,7 +38,7 @@ def change_input(default_filename, output_filename, updated_data, components):
 
     density_based_porosity = 1 - (updated_data[1]/2750)
     density_based_smectite = 0.806 * (1-density_based_porosity)
-    density_based_inert = 0.106 * (1-density_based_porosity)
+    density_based_inert = 0.13702 * (1-density_based_porosity)
     density_based_quartz = 0.0488 * (1-density_based_porosity)
     density_based_gypsum = 0.00782 * (1-density_based_porosity)
     density_based_pyrite = 0.00036 * (1-density_based_porosity) * updated_data[3]
