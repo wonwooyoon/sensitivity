@@ -18,6 +18,7 @@ def run_pflotran_main():
         mv ${base_dir}/src/RunPFLOTRAN/input/*.xmf "${output_subdir}"
         mv ${base_dir}/src/RunPFLOTRAN/input/*.pft "${output_subdir}"
         mv ${base_dir}/src/RunPFLOTRAN/input/*.out "${output_subdir}"
+        cp "${base_dir}/src/RunPFLOTRAN/input/sample_${i}.in" "${output_subdir}"
     done
     """
     subprocess.run(['bash', '-c', bash_code], check=True)
