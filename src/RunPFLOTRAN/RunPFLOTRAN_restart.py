@@ -15,7 +15,9 @@ def run_pflotran_restart():
                     if 'CHECKPOINT' in line:
                         new_line = f'RESTART\n   FILENAME sample_{i}.restart\n'
                         lines.insert(lines.index(line) + 4, new_line)
-                        break
+                    if 'NUMERICAL_METHODS transport' in line:
+                        pass
+
                 with open (f'../output/sample_{i}/sample_{i}_restart.in', 'w') as restart_file: 
                     restart_file.writelines(lines)
     
