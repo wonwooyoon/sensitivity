@@ -2,6 +2,5 @@ venv_sensitivity/
 sample_*.h5
 *.xmf
 *.tec
-*.out
 *.pft
-*.csv
+*.out
