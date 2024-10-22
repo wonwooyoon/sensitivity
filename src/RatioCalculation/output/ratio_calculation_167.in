@@ -236,19 +236,19 @@ END
   
 CONSTRAINT granite_fracture_conc
   CONCENTRATIONS
-    H+		6.944037  		    pH
-    CO3--	0.00208081 	      T
-    Ca++ 	0.02318084	      T
-    Cl-		0.1393017		      Z
-    Fe++	0.00003310048	    T  
+    H+		6.835755  		    pH
+    CO3--	0.002027 	      T
+    Ca++ 	0.023127	      T
+    Cl-		0.139277		      Z
+    Fe++	0.000033	    T  
     K+		0.000875 	        T
-    Mg++	0.009300035 	    T
-    Na+		0.0888		        T
-    SO4--	0.006800085 	    T
-    H4(SiO4)	0.0001814534	T
+    Mg++	0.009300 	    T
+    Na+		0.088800		        T
+    SO4--	0.006800 	    T
+    H4(SiO4)	0.000234	T
     Al+++	1e-16			        T
     UO2++	1e-16			        T
-    O2(aq)	-2.59317		    PE
+    O2(aq)	-1.630437		    PE
   /
   MINERALS
     Smectite_MX80 	0.0                     1e3 	m^2/m^3
