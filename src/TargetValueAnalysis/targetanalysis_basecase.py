@@ -49,25 +49,23 @@ class TargetValueAnalysis:
 
     def calculate_efflux(self, efflux_path, efflux_csv_path):
         
-        efflux_path_1 = efflux_path + '26.pft'
-        efflux_path_2 = efflux_path + '30.pft'
+        efflux_path_1 = efflux_path + '7.pft'
 
         efflux_1 = self.calculate_efflux_aux(efflux_path_1)
-        efflux_2 = self.calculate_efflux_aux(efflux_path_2)
 
         for i in range(len(efflux_1)):
             if i == 0:
-                self.efflux = efflux_1[i] + efflux_2[i]
+                self.efflux = efflux_1[i] 
                 self.efflux_seq = [self.efflux]
             else:
-                self.efflux = self.efflux + efflux_1[i] + efflux_2[i]
+                self.efflux = self.efflux + efflux_1[i]
                 self.efflux_seq.append(self.efflux)
                 
         self.efflux_seq = pd.DataFrame({'Efflux': self.efflux_seq})
         self.efflux_seq.to_csv(efflux_csv_path, index=False)
             
     def save_target_values(self):
-        target_values = pd.DataFrame({'Aqueous UO2++ in Granite': [self.aqueous_granite], 'Aqueous UO2++ in Bentonite': [self.aqueous_bentonite], 'Adsorbed UO2++ in Bentonite': [self.adsorbed], 'Efflux UO2++': [self.efflux]})
+        target_values = pd.DataFrame({'Aqueous UO2++ in Granite': [self.aqueous_granite], 'Aqueous UO2++ in Bentonite': [self.aqueous_bentonite], 'Adsorbed UO2++ in Bentonite': [self.adsorbed]})
         if not hasattr(self, 'target_values'):
             self.target_values = target_values
         else:
@@ -83,18 +81,19 @@ if __name__ == '__main__':
     tva = TargetValueAnalysis()
     target_csv_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/target_values.csv'
 
-    for i in range(1, 9):
+    efflux_path = f'/home/wwy/research/sensitivity/src/RunPFLOTRAN/output/sample_201/sample_201-obs-'
+    efflux_csv_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_201/efflux.csv'
+    tva.calculate_efflux(efflux_path, efflux_csv_path)
+        
+    for i in range(0, 101):
     
-        efflux_path = f'/home/wwy/research/sensitivity/src/RunPFLOTRAN/output/sample_{i}/sample_{i}-obs-'
-        efflux_csv_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}/efflux.csv'
-        file_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}/sample_{i}.csv'
+        file_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_201/sample_201_time_{i*100:.1f}.csv'
         
         check = tva.read_path(file_path)
         if check == 0:
             continue
         tva.calculate_aqueous()
         tva.calculate_adsorbed()
-        tva.calculate_efflux(efflux_path, efflux_csv_path)
         tva.save_target_values()
     
     tva.save_csv(target_csv_path)
