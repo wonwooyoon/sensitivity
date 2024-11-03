@@ -5,13 +5,19 @@ import glob
 def export_files():
     input_dir = './src/RunPFLOTRAN/output/'
     output_dir = './src/RunPFLOTRAN/output_export/'
+    output_error_dir = './src/RunPFLOTRAN/output_export/error/'
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     sample_dirs = glob.glob(os.path.join(input_dir, 'sample_*'))
+    already_exported = glob.glob(os.path.join(output_dir, 'sample_*'))
 
     for sample_dir in sample_dirs:
+        
+        if sample_dir in already_exported:
+            continue
+
         sample_name = os.path.basename(sample_dir)
         new_sample_dir = os.path.join(output_dir, sample_name)
 
