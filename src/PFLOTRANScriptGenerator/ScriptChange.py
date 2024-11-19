@@ -14,8 +14,6 @@ def change_input(default_filename, output_filename, updated_data, components):
     granite_mineral_target = None
     pressure_grad_target = None
     mixing_ratio_target = None
-    tolerance_traget = None
-    timestep_target = None
 
     for i, line in enumerate(lines):
 
@@ -31,10 +29,6 @@ def change_input(default_filename, output_filename, updated_data, components):
             pressure_grad_target = i
         if 'CONSTRAINT seawater_conc' in line:
             mixing_ratio_target = i + 2
-        if 'ATOL 1e-13' in line:
-            tolerance_traget = i
-        if 'MAXIMUM_TIMESTEP_SIZE 2.d-2 yr at 10 yr' in line:
-            timestep_target = i
 
     density_based_porosity = 1 - (updated_data[1]/2750)
     density_based_smectite = 0.806 * (1-density_based_porosity)
@@ -42,13 +36,6 @@ def change_input(default_filename, output_filename, updated_data, components):
     density_based_quartz = 0.0488 * (1-density_based_porosity)
     density_based_gypsum = 0.00782 * (1-density_based_porosity)
     density_based_pyrite = 0.00036 * (1-density_based_porosity) * updated_data[3]
-
-    if updated_data[0] <= 5e-17:
-        lines[tolerance_traget] = '    ATOL 1e-15\n'
-    elif updated_data[0] >= 5e-16:
-        lines[timestep_target] = '    MAXIMUM_TIMESTEP_SIZE 5.d-3 yr at 10 yr\n'
-    elif updated_data[0] >= 1e-16:
-        lines[timestep_target] = '    MAXIMUM_TIMESTEP_SIZE 1.d-2 yr at 10 yr\n'
 
     if fracture_perm_target is not None:
         lines[fracture_perm_target] = f'    PERM_ISO {updated_data[0]} ! unit: m^2\n'
@@ -66,7 +53,7 @@ def change_input(default_filename, output_filename, updated_data, components):
 
     if granite_mineral_target is not None:
 
-        lines[granite_mineral_target] = f'    Pyrite		{0.0 * updated_data[4]}	1e2 	m^2/m^3\n'
+        lines[granite_mineral_target] = f'    Pyrite		{0.0 * updated_data[3]}	1e2 	m^2/m^3\n'
 
     if mixing_ratio_target is not None:
 

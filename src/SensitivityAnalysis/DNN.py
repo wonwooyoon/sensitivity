@@ -3,8 +3,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.inspection import permutation_importance  
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 import torch
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -23,16 +22,16 @@ class DNN_learning:
             os.makedirs(self.output_path)
 
     def data_split(self, file_path):
-        self.input = pd.read_csv(f'{file_path}/input.csv')
-        self.output = pd.read_csv(f'{file_path}/output.csv')
-        self.output = self.output.iloc[:, 2]
+        self.input = pd.read_csv(f'{file_path}/input_wwy.csv')
+        self.output = pd.read_csv(f'{file_path}/output_wwy.csv')
+        self.output = self.output.iloc[:, 0]
         
-        self.input_scaler = MinMaxScaler()
+        self.input_scaler = StandardScaler()
         self.output_scaler = MinMaxScaler()
         self.input = pd.DataFrame(self.input_scaler.fit_transform(self.input), columns=self.input.columns)
         self.output = pd.DataFrame(self.output_scaler.fit_transform(self.output.values.reshape(-1, 1)), columns=['Y'])
         
-        self.train_x, self.test_x, self.train_Y, self.test_Y = train_test_split(self.input, self.output, test_size=0.15, random_state=42)
+        self.train_x, self.test_x, self.train_Y, self.test_Y = train_test_split(self.input, self.output, test_size=0.2, random_state=128378)
 
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,24 +43,24 @@ class DNN_learning:
         self.test_Y = torch.tensor(self.test_Y.values, device=device, dtype=torch.float)
 
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(self.train_x.size(1), 1024),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.1),
-            torch.nn.Linear(1024, 2048),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.1),
-            torch.nn.Linear(2048, 2048),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.1),
-            torch.nn.Linear(2048, 1024),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.1),
-            torch.nn.Linear(1024, 1),
+            torch.nn.Linear(self.train_x.size(1), 16),
+            torch.nn.GELU(),
+            torch.nn.Dropout(0.05),
+            torch.nn.Linear(16, 256),
+            torch.nn.GELU(),
+            torch.nn.Dropout(0.05),
+            torch.nn.Linear(256, 256),
+            torch.nn.GELU(),
+            torch.nn.Dropout(0.05),
+            torch.nn.Linear(256, 16),
+            torch.nn.GELU(),
+            torch.nn.Dropout(0.05),
+            torch.nn.Linear(16, 1),
         ).to(device)
 
         self.loss_fn = torch.nn.MSELoss(reduction='sum')
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
-        self.epoch = 10000
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.005)
+        self.epoch = 1000
         # model parameters initialization
         for param in self.model.parameters():
             if len(param.size()) == 2:
@@ -69,36 +68,43 @@ class DNN_learning:
             else:
                 torch.nn.init.zeros_(param)
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=300, factor=0.5)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=1000, factor=0.8)
         lowest_loss = 1000000
 
+    
+        batch_size = 4
+        train_dataset = torch.utils.data.TensorDataset(self.train_x, self.train_Y)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
         for t in tqdm(range(self.epoch)):
-            
-            y_pred = self.model(self.train_x)
-            loss = self.loss_fn(y_pred, self.train_Y)
-            print(t, loss.item())
-            loss.backward()
-            self.optimizer.step()
-            self.optimizer.zero_grad()
-            
+            self.model.train()
+            epoch_loss = 0
+            for batch_x, batch_Y in train_loader:
+                y_pred = self.model(batch_x)
+                loss = self.loss_fn(y_pred, batch_Y)
+                loss.backward()
+                self.optimizer.step()
+                self.optimizer.zero_grad()
+                epoch_loss += loss.item()
+
+            epoch_loss /= len(train_loader)
             test_loss = self.loss_fn(self.model(self.test_x), self.test_Y)
             scheduler.step(test_loss)
 
             if t % 100 == 0:
-                tqdm.write(f'epoch {t}, loss {loss.item() / len(self.train_x)}, test_loss {test_loss.item() / len(self.test_x)}')
-            
+                tqdm.write(f'epoch {t}, loss {epoch_loss}, test_loss {test_loss.item() / len(self.test_x)}, lr = {self.optimizer.param_groups[0]["lr"]}')
+
             with torch.no_grad():
-               # save loss and test loss per epoch to draw a loss evolution graph in self.less_evo and self.test_loss_evo
                 if t == 0:
-                    self.loss_evo = [loss.item() / len(self.train_x)]
+                    self.loss_evo = [epoch_loss]
                     self.test_loss_evo = [test_loss.item() / len(self.test_x)]
                 else:
-                    self.loss_evo.append(loss.item() / len(self.train_x))
+                    self.loss_evo.append(epoch_loss)
                     self.test_loss_evo.append(test_loss.item() / len(self.test_x))
 
-                if test_loss.item()/len(self.test_x) < lowest_loss:
-                    lowest_loss = test_loss.item()/len(self.test_x)
-                    torch.save(self.model.state_dict(), f'{self.output_path}/model.pth')
+            if test_loss.item() / len(self.test_x) < lowest_loss:
+                lowest_loss = test_loss.item() / len(self.test_x)
+                torch.save(self.model.state_dict(), f'{self.output_path}/model.pth')
 
         # draw a loss evolution graph
         plt.plot(self.loss_evo, label='train')
@@ -117,33 +123,35 @@ class DNN_learning:
         self.model.load_state_dict(torch.load(f'{self.output_path}/model.pth'))
         
     def test(self):
-        y_pred = self.model(self.test_x)
-        test_loss = self.loss_fn(y_pred, self.test_Y)
-        print(test_loss.item())
-        
-        plt.clf()
-        # Inverse transform the normalized data
-        test_Y_inverse = self.output_scaler.inverse_transform(self.test_Y)
-        y_pred_inverse = self.output_scaler.inverse_transform(y_pred.detach().numpy())
 
-        # Calculate the R^2 value of the model
-        y_pred = self.model(self.test_x)
-        y_pred_inverse = self.output_scaler.inverse_transform(y_pred.detach().numpy())
-        test_Y_inverse = self.output_scaler.inverse_transform(self.test_Y)
-        y_pred_inverse = np.array(y_pred_inverse).reshape(-1)
-        test_Y_inverse = np.array(test_Y_inverse).reshape(-1)
-        ss_res = np.sum((test_Y_inverse - y_pred_inverse) ** 2)
-        ss_tot = np.sum((test_Y_inverse - np.mean(test_Y_inverse)) ** 2)
-        r2 = 1 - ss_res / ss_tot
-       
-        plt.plot(test_Y_inverse, y_pred_inverse, 'o')
-        plt.plot([0, 70], [0, 70], 'r--')  # Add the x=y line
+        self.model.eval()
+        with torch.no_grad():
+            train_pred = self.model(self.train_x).cpu().numpy()
+            test_pred = self.model(self.test_x).cpu().numpy()
+            train_Y = self.train_Y.cpu().numpy()
+            test_Y = self.test_Y.cpu().numpy()
+
+        plt.figure(figsize=(10, 5))
+
+        # Plot for training data
+        plt.subplot(1, 2, 1)
+        plt.scatter(train_Y, train_pred, alpha=0.5)
+        plt.plot([train_Y.min(), train_Y.max()], [train_Y.min(), train_Y.max()], 'r--')
         plt.xlabel('Actual')
         plt.ylabel('Predicted')
-        plt.xlim(0, 70)  # Set x-axis range
-        plt.ylim(0, 70)  # Set y-axis range
-        plt.text(10, 60, f'R^2={r2:.3f}')
-        plt.savefig(f'{self.output_path}/output.png')
+        plt.title('Training Data')
+
+        # Plot for testing data
+        plt.subplot(1, 2, 2)
+        plt.scatter(test_Y, test_pred, alpha=0.5)
+        plt.plot([test_Y.min(), test_Y.max()], [test_Y.min(), test_Y.max()], 'r--')
+        plt.xlabel('Actual')
+        plt.ylabel('Predicted')
+        plt.title('Testing Data')
+
+        plt.tight_layout()
+        plt.savefig(f'{self.output_path}/prediction_vs_actual.png')
+        plt.show()
 
     def sensitivity(self):
         # calculate the sensitivity of the model by permutation importance fator
@@ -176,5 +184,5 @@ if __name__ == '__main__':
     dnn.data_split('./src/SensitivityAnalysis/input')
     dnn.train()
     dnn.test()
-    dnn.sensitivity()
+    #dnn.sensitivity()
 

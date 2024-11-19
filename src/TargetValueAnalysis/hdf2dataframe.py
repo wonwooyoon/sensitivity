@@ -24,8 +24,14 @@ if __name__ == '__main__':
 
     
     # read every sample file in ./src/RunPFLOTRAN/output/sample_*/sample_*.h5
-    for i in range(1, 9):
+    for i in range(0, 202):
+
+        if not os.path.exists(f'/mnt/d/wwy/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{i}'):
+            continue
+        elif os.path.exists(f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}/sample_{i}.csv'):
+            continue
+        
         os.makedirs(f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}', exist_ok=True)
-        read_hdf5_file(f'./src/RunPFLOTRAN/output/sample_{i}/sample_{i}.h5', f'./src/TargetValueAnalysis/output/sample_{i}/sample_{i}')
+        read_hdf5_file(f'/mnt/d/wwy/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{i}/sample_{i}.h5', f'./src/TargetValueAnalysis/output/sample_{i}/sample_{i}')
 
     

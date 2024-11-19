@@ -19,7 +19,7 @@ def lhs_sampling(num_samples, ranges, log_scale_vars, output_csv):
         else:
             scaled_sample[:, i] = ranges[i][0] + sample[:, i] * (ranges[i][1] - ranges[i][0])
 
-    columns = ['fracture_perm', 'bentonite_dry_density', 'pressure_grad', 'bentonite_pyrite_factor', 'granite_pyrite_factor', 'mixing_ratio']
+    columns = ['fracture_perm', 'bentonite_dry_density', 'pressure_grad', 'bentonite_pyrite_factor', 'mixing_ratio']
     df = pd.DataFrame(scaled_sample, columns=columns)
     df.to_csv(output_csv, index=False, header=False)
 
@@ -27,15 +27,14 @@ def lhs_sampling(num_samples, ranges, log_scale_vars, output_csv):
 if __name__ == "__main__":
     num_samples = 200
     ranges = [
-        [-18, -14],
+        [1e-16, 1e-14],
         [1300, 1900],
         [501925, 507325],
-        [0.0, 1.0],
         [0.0, 1.0],
         [0.0, 1.0]
     ]
 
-    log_scale_vars = [True, False, False, False, False, False]
+    log_scale_vars = [False, False, False, False, False]
 
     output_csv = "./src/RandomSampling/output/lhs_sampled_data.csv"
     lhs_sampling(num_samples, ranges, log_scale_vars, output_csv)

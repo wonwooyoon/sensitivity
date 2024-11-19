@@ -9,9 +9,9 @@ def run_pflotran_main():
     base_dir="$(pwd)"
     mkdir -p "${base_dir}/src/RunPFLOTRAN/output"
 
-    for i in {1..100}; do
+    for i in {18..49}; do
         infile="${base_dir}/src/RunPFLOTRAN/input/sample_${i}.in"
-        mpirun -n 36 /home/wwy/pflotran/src/pflotran/pflotran -input_prefix "${infile%.*}"
+        mpirun -n 40 /home/wwy/pflotran/src/pflotran/pflotran -input_prefix "${infile%.*}"
         output_subdir="${base_dir}/src/RunPFLOTRAN/output/$(basename ${infile%.*})"
         mkdir -p "${output_subdir}"
         mv ${base_dir}/src/RunPFLOTRAN/input/!(*ML_sensitivity_analysis).h5 "${output_subdir}"
