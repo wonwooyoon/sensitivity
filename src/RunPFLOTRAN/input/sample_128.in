@@ -10,10 +10,6 @@ SIMULATION
     /
   /
 
-  RESTART
-    FILENAME sample_128-3000.0000yr.h5
-  /
-
   CHECKPOINT 
     FORMAT HDF5
     PERIODIC TIME 100 yr
