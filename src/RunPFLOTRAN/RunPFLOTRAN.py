@@ -9,7 +9,7 @@ def run_pflotran_main():
     base_dir="$(pwd)"
     mkdir -p "${base_dir}/src/RunPFLOTRAN/output"
 
-    for i in {1..25}; do
+    for i in {128..130}; do
         infile="${base_dir}/src/RunPFLOTRAN/input/sample_${i}.in"
         mpirun -n 40 $PFLOTRAN_DIR/src/pflotran/pflotran -input_prefix "${infile%.*}"
         output_subdir="${base_dir}/src/RunPFLOTRAN/output/$(basename ${infile%.*})"

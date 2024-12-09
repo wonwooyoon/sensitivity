@@ -21,22 +21,17 @@ class RatioEquilibrium:
         with open(f'{self.default_script_dir}', 'r') as file:
             lines = file.readlines()
 
-        ratio_1_target = None
-        ratio_2_target = None
+        ratio_target = None
 
         for i, line in enumerate(lines):
 
-            if 'MATERIAL_PROPERTY sea_water' in line:
-                ratio_1_target = i+2
             if 'MATERIAL_PROPERTY granite_fracture' in line:
-                ratio_2_target = i+2
+                ratio_target = i+2
 
         for i in range(np.shape(self.ratios)[0]):
 
-            if ratio_1_target is not None:
-                lines[ratio_1_target] = f'POROSITY {self.ratios[i, 0]}\n'
-            if ratio_2_target is not None:
-                lines[ratio_2_target] = f'POROSITY {self.ratios[i, 1]}\n'
+            if ratio_target is not None:
+                lines[ratio_target] = f'POROSITY {self.ratios[i, 1]}\n'
 
             with open(f'{self.ratio_result_dir}/ratio_calculation_{i}.in', 'w') as file:
                 file.writelines(lines)
@@ -57,11 +52,12 @@ class RatioEquilibrium:
         bash_code = """
 #!/bin/bash
 mkdir -p ./src/RatioCalculation/output
+base_dir="$(pwd)"
 
-for infile in ./src/RatioCalculation/output/ratio_calculation_*.in; do
+for i in {197..299}; do
+  infile="${base_dir}/src/RatioCalculation/output/ratio_calculation_${i}.in"
   echo "Running pflotran on $infile..."
-  mpirun -n 1 /home/wwy/pflotran/src/pflotran/pflotran -input_prefix "${infile%.*}"
-
+  mpirun -n 1 /home/geofluids/pflotran/src/pflotran/pflotran -input_prefix "${infile%.*}"
 done
 
 echo "All simulations completed and results moved to ./src/RatioCalculation/output/"

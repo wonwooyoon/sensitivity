@@ -1,4 +1,7 @@
 venv_sensitivity/
+src/RunPFLOTRAN/output/*
+src/RunPFLOTRAN/output_export/*
+src/TargetValueAnalysis/output/*
 sample_*.h5
 *.xmf
 *.tec

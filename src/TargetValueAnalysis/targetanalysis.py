@@ -1,6 +1,13 @@
 import pandas as pd
-import os
 import glob
+import os
+from matplotlib import font_manager
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+font_manager.fontManager.addfont('/usr/share/fonts/truetype/msttcorefonts/Arial.ttf')
+font_manager.fontManager.addfont('/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf')
+plt.rcParams['font.family'] = 'Arial'
 
 class TargetValueAnalysis:
 
@@ -22,13 +29,11 @@ class TargetValueAnalysis:
         
         material_2 = self.data[self.data['Material ID'] == 2]
         self.aqueous_bentonite = (material_2['Total UO2++ [m]'] * material_2['Volume [m^3]'] * material_2['Porosity']).sum()
-
-
+    
     def calculate_adsorbed(self):
         material_2 = self.data[self.data['Material ID'] == 2]
         self.adsorbed = (material_2['Total Sorbed UO2++ [mol_m^3]'] * material_2['Volume [m^3]']).sum()
-
-
+    
     def calculate_efflux_aux(self, efflux_path):
         with open(efflux_path, 'r') as f:
             lines = f.readlines()
@@ -49,10 +54,9 @@ class TargetValueAnalysis:
                 efflux_sum = sum(efflux)            
                 result.append(efflux_sum)
             return result 
-        
 
     def calculate_efflux(self, efflux_path, efflux_csv_path):
-
+        
         self.efflux_seq = None
 
         for file in glob.glob(efflux_path + '*.pft'):
@@ -66,59 +70,214 @@ class TargetValueAnalysis:
         self.efflux = self.efflux_seq[-1]                
         self.efflux_seq_df = pd.DataFrame({'Efflux': self.efflux_seq})
         self.efflux_seq_df.to_csv(efflux_csv_path, index=False)
-        
-
-    def save_target_values(self, sample_num):
-        
-        target_values = pd.DataFrame({'sample number': [sample_num], 'Aqueous UO2++ in Granite': [self.aqueous_granite], 'Aqueous UO2++ in Bentonite': [self.aqueous_bentonite], 'Adsorbed UO2++ in Bentonite': [self.adsorbed], 'Efflux UO2++': [self.efflux]})
-        
+            
+    def save_target_values(self):
+        target_values = pd.DataFrame({'Aqueous UO2++ in Granite': [self.aqueous_granite], 'Aqueous UO2++ in Bentonite': [self.aqueous_bentonite], 'Adsorbed UO2++ in Bentonite': [self.adsorbed]})
         if not hasattr(self, 'target_values'):
             self.target_values = target_values
         else:
             self.target_values = pd.concat([self.target_values, target_values], ignore_index=True)
 
     def save_csv(self, target_path):
+        
         self.target_values.to_csv(target_path, index=False)
 
-
-    def save_input_output(self, input_path, output_path):
-        
-        input_raw = pd.read_csv(input_path, header=None)
-        output_raw = pd.read_csv(output_path, header=None)
-        input_matched = pd.DataFrame()
-
-        for i in range(len(output_raw)):
-            sample_num = int(output_raw.iloc[i][0])
-            input_matched = pd.concat([input_matched, input_raw.iloc[[sample_num - 1]]], axis=0)
-
-        input_matched = pd.DataFrame(input_matched)
-        input_matched.reset_index(drop=True, inplace=True)
-        output_raw.reset_index(drop=True, inplace=True)
-        input_output = pd.concat([input_matched, output_raw.iloc[:, 1:]], ignore_index=True, axis=1)
-        input_output.to_csv('/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/input_output.csv', index=False, header=False)
-
-
-
-
+    
 if __name__ == '__main__':
 
-    tva = TargetValueAnalysis()
-    target_csv_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/target_values.csv'
+    for j in range(200):
+        if os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/sample_{j}_time_10000.0.csv'):
+            if not os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/target_values.csv'):
 
-    for i in range(1, 202):
+                tva = TargetValueAnalysis()
+                
+                target_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/target_values.csv'
+                efflux_path = f'/mnt/d/WWY/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{j}/sample_{j}-obs-'
+                efflux_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/efflux.csv'
 
-        efflux_path = f'/mnt/d/wwy/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{i}/sample_{i}-obs-'
-        efflux_csv_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}/efflux.csv'
-        file_path = f'/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}/sample_{i}.csv'
+                tva.calculate_efflux(efflux_path, efflux_csv_path)
         
-        check = tva.read_path(file_path)
-        if check == 0:
-            continue
-        tva.calculate_aqueous()
-        tva.calculate_adsorbed()
-        tva.calculate_efflux(efflux_path, efflux_csv_path)
-        tva.save_target_values(i)
+                for i in range(0, 101):
     
-    tva.save_csv(target_csv_path)
+                    file_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/sample_{j}_time_{i*100:.1f}.csv'
+        
+                    check = tva.read_path(file_path)
+                    if check == 0:
+                        continue
+                    tva.calculate_aqueous()
+                    tva.calculate_adsorbed()
+                    tva.save_target_values()
+    
+                tva.save_csv(target_csv_path)
+    
+    num = 0    
+    target_df = pd.DataFrame()
+    input_csv_path = f'/home/geofluids/research/sensitivity/src/RandomSampling/output/lhs_sampled_data.csv'
+    input_csv = pd.read_csv(input_csv_path, names=['x1', 'x2', 'x3', 'x4', 'x5'], header=None)
 
-    # tva.save_input_output('/home/wwy/research/sensitivity/src/RandomSampling/output/lhs_sampled_data.csv', '/home/wwy/research/sensitivity/src/TargetValueAnalysis/output/target_values.csv')
+    # plot x1, x2, and x3
+    for k in range(3):
+        
+        for j in range(200):
+
+            target_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/target_values.csv'
+    
+            if os.path.exists(target_csv_path):
+                df = pd.read_csv(target_csv_path)
+                        
+                if j == 197:
+                    plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color='red')
+                else:
+                    plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color=(0.86, 0.86, 1.0))
+                
+                num += 1
+                
+                if k == 0:
+                    df_last_row = df.iloc[-1, :].to_frame().T
+                    df_last_row.index = [j]
+                    input_row = input_csv.iloc[j, :].to_frame().T
+                    input_row.index = [j]
+                    df_last_row = pd.concat([input_csv.iloc[j, :].to_frame().T, df_last_row], axis=1)
+                    target_df = pd.concat([target_df, df_last_row], axis=0)
+
+        print(f'Case loaded: {num}')
+        num = 0
+
+        plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+        
+        if k == 0:
+            plt.ylabel(f'Total Aqueous UO$_{{2}}^{{ 2+}}$ in Fracture [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+        elif k == 1:
+            plt.ylabel(f'Total Aqueous UO$_{{2}}^{{ 2+}}$ in bentonite [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+        elif k == 2:
+            plt.ylabel(f'Total Adsorbed UO$_{{2}}^{{ 2+}}$ in bentonite [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+        
+        plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
+        plt.xticks(fontfamily='Arial', fontweight='bold', fontsize=15)
+        plt.yticks(fontfamily='Arial', fontweight='bold', fontsize=15)
+
+        plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
+    
+        formatter = ticker.ScalarFormatter(useMathText=True)
+        formatter.set_scientific(True)
+        formatter.set_powerlimits((-1, 1))
+        plt.gca().yaxis.set_major_formatter(formatter)
+        plt.gca().yaxis.get_offset_text().set_fontsize(12)
+        plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
+        plt.gca().yaxis.get_offset_text().set_fontweight('bold')
+        plt.xlim(0, 10000)
+        
+        if k == 0:
+            plt.ylim(0, 4e-3)
+        elif k == 1:
+            plt.ylim(0, 1.2e-4)
+        elif k == 2:
+            plt.ylim(0, 8)
+
+        if k == 0:
+            plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-3))
+        elif k == 1:
+            plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(2e-5))
+        elif k == 2:
+            plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(2))
+        
+        plt.gcf().set_size_inches(6, 5)
+        plt.gcf().set_dpi(600)
+        plt.savefig(f'./src/TargetValueAnalysis/output/target_value_{k+1}.png')
+        plt.close()
+
+    efflux_df = pd.DataFrame()
+
+    # plot x4
+    for j in range(200):
+
+        efflux_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/efflux.csv'
+
+        if os.path.exists(efflux_csv_path):
+            df = pd.read_csv(efflux_csv_path)
+                
+            if j == 197:
+                plt.plot(df.index, df.iloc[:, 0], label=f'Sample {j+1}', color='red')
+            else:
+                plt.plot(df.index, df.iloc[:, 0], label=f'Sample {j+1}', color=(0.86, 0.86, 1.0))
+                
+            num += 1
+
+            df_last_row = df.iloc[-1, :].to_frame().T
+            df_last_row.index = [j]
+            efflux_df = pd.concat([efflux_df, df_last_row], axis=0)
+
+    target_df = pd.concat([target_df, efflux_df], axis=1)
+
+    print(f'Case loaded: {num}')
+    
+    plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+    plt.ylabel(f'Total UO$_{{2}}^{{ 2+}}$ Efflux [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+
+    plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
+    
+    plt.xlim(0, 10000)
+    plt.ylim(0, 4e-9)
+
+    plt.xticks(fontfamily='Arial', fontweight='bold', fontsize=15)
+    plt.yticks(fontfamily='Arial', fontweight='bold', fontsize=15)
+
+    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
+    plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-9))
+
+    formatter = ticker.ScalarFormatter(useMathText=True)
+    formatter.set_scientific(True)
+    formatter.set_powerlimits((-1, 1))
+    plt.gca().yaxis.get_offset_text().set_fontsize(12)
+    plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
+    plt.gca().yaxis.get_offset_text().set_fontweight('bold')
+    plt.gca().yaxis.set_major_formatter(formatter)
+    
+    plt.gcf().set_size_inches(6, 5)
+    plt.gcf().set_dpi(600)
+
+    plt.savefig('./src/TargetValueAnalysis/output/target_value_4.png')
+    plt.close()
+
+    # make input-output pairs
+    target_df.to_csv('./src/TargetValueAnalysis/output/inout.csv', index=False)
+
+    # plot pdf
+    target_path = './src/TargetValueAnalysis/output/inout.csv'
+
+    # Read data from the csv file
+    df = pd.read_csv(target_path)
+    df = df.iloc[:, -4:]
+
+    # Normalize the data by dividing by the maximum value of each column
+    for i in range(4):
+        df.iloc[:, i] = df.iloc[:, i] / df.iloc[:, i].max()
+
+    # Create a figure and a set of subplots
+    fig, axs = plt.subplots(4, 1, figsize=(5, 20), constrained_layout=True)
+
+    # Set the x-axis label of each subplot
+    axs[3].set_xlabel('Probability Density', fontfamily='Arial', fontweight='bold', fontsize=15)
+
+    # Set the y-axis label of each subplot
+    axs[0].set_ylabel('Total Aqueous UO$_{2}^{2+}$ in Fracture', fontfamily='Arial', fontweight='bold', fontsize=15)
+    axs[1].set_ylabel('Total Aqueous UO$_{2}^{2+}$ in Bentonite', fontfamily='Arial', fontweight='bold', fontsize=15)
+    axs[2].set_ylabel('Total Adsorbed UO$_{2}^{2+}$ in Bentonite', fontfamily='Arial', fontweight='bold', fontsize=15)
+    axs[3].set_ylabel('Total UO$_{2}^{2+}$ Efflux', fontfamily='Arial', fontweight='bold', fontsize=15)
+    
+    # Plot the pdf of the target values, do not draw a histogram but only the pdf
+    axs[0].hist(df.iloc[:, 0], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
+    axs[1].hist(df.iloc[:, 1], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
+    axs[2].hist(df.iloc[:, 2], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
+    axs[3].hist(df.iloc[:, 3], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
+        
+    for ax in axs:
+        ax.tick_params(axis='x', which='major', length=6, direction='in')
+        ax.tick_params(axis='y', which='major', length=6, direction='out')
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 1)
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
+
+    plt.savefig(target_path.replace('.csv', '_pdf.png'))
+    plt.close()
+

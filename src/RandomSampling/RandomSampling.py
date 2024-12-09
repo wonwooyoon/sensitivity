@@ -25,7 +25,7 @@ def lhs_sampling(num_samples, ranges, log_scale_vars, output_csv):
 
 
 if __name__ == "__main__":
-    num_samples = 200
+    num_samples = 102
     ranges = [
         [1e-16, 1e-14],
         [1300, 1900],
@@ -34,6 +34,7 @@ if __name__ == "__main__":
         [0.0, 1.0]
     ]
 
+    # perm, density, pressure gradient, pyrite factor, mixing ratio
     log_scale_vars = [False, False, False, False, False]
 
     output_csv = "./src/RandomSampling/output/lhs_sampled_data.csv"
