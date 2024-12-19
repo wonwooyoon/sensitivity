@@ -21,17 +21,24 @@ class RatioEquilibrium:
         with open(f'{self.default_script_dir}', 'r') as file:
             lines = file.readlines()
 
-        ratio_target = None
+        ratio_target_1 = None
+        ratio_target_2 = None
 
         for i, line in enumerate(lines):
 
+            if 'MATERIAL_PROPERTY seawater' in line:
+                ratio_target_1 = i+2
+
             if 'MATERIAL_PROPERTY granite_fracture' in line:
-                ratio_target = i+2
+                ratio_target_2 = i+2
 
         for i in range(np.shape(self.ratios)[0]):
 
-            if ratio_target is not None:
-                lines[ratio_target] = f'POROSITY {self.ratios[i, 1]}\n'
+            if ratio_target_1 is not None:
+                lines[ratio_target_1] = f'POROSITY {self.ratios[i, 1]}\n'
+
+            if ratio_target_2 is not None:
+                lines[ratio_target_2] = f'POROSITY {self.ratios[i, 0]}\n' 
 
             with open(f'{self.ratio_result_dir}/ratio_calculation_{i}.in', 'w') as file:
                 file.writelines(lines)
@@ -54,7 +61,7 @@ class RatioEquilibrium:
 mkdir -p ./src/RatioCalculation/output
 base_dir="$(pwd)"
 
-for i in {197..299}; do
+for i in {300..397}; do
   infile="${base_dir}/src/RatioCalculation/output/ratio_calculation_${i}.in"
   echo "Running pflotran on $infile..."
   mpirun -n 1 /home/geofluids/pflotran/src/pflotran/pflotran -input_prefix "${infile%.*}"
@@ -104,8 +111,8 @@ if __name__ == '__main__':
     
     ratio_calculation = RatioEquilibrium(ratio_dir, default_script_dir, ratio_results_dir)
 
-    ratio_calculation.read_ratio()
-    ratio_calculation.write_script()
-    ratio_calculation.run_pflotran_ratio()
+    #ratio_calculation.read_ratio()
+    #ratio_calculation.write_script()
+    #ratio_calculation.run_pflotran_ratio()
     ratio_calculation.read_pflotran_result(components)
 

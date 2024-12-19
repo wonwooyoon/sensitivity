@@ -45,14 +45,14 @@ class TargetValueAnalysis:
                     efflux_total_uo2_index.append(i)
                 elif 'qlx' in item:
                     efflux_qlx_index.append(i)
-            result = []
+            result = [0]
             for line in lines[1:]:
                 line_data = line.split()
                 efflux_total_uo2 = [float(line_data[i]) for i in efflux_total_uo2_index]
                 efflux_qlx = [float(line_data[i]) for i in efflux_qlx_index]
                 efflux = [efflux_total_uo2[i] * efflux_qlx[i] * 1 / 1000 for i in range(len(efflux_total_uo2))]
                 efflux_sum = sum(efflux)            
-                result.append(efflux_sum)
+                result.append(efflux_sum+result[-1])
             return result 
 
     def calculate_efflux(self, efflux_path, efflux_csv_path):
@@ -85,10 +85,10 @@ class TargetValueAnalysis:
     
 if __name__ == '__main__':
 
-    for j in range(200):
+    for j in range(300):
         if os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/sample_{j}_time_10000.0.csv'):
             if not os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/target_values.csv'):
-
+            
                 tva = TargetValueAnalysis()
                 
                 target_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/target_values.csv'
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     # plot x1, x2, and x3
     for k in range(3):
         
-        for j in range(200):
+        for j in range(301):
 
             target_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/target_values.csv'
     
@@ -126,7 +126,7 @@ if __name__ == '__main__':
                 df = pd.read_csv(target_csv_path)
                         
                 if j == 197:
-                    plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color='red')
+                    plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color='red', zorder=10)
                 else:
                     plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color=(0.86, 0.86, 1.0))
                 
@@ -143,18 +143,18 @@ if __name__ == '__main__':
         print(f'Case loaded: {num}')
         num = 0
 
-        plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+        plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         
         if k == 0:
-            plt.ylabel(f'Total Aqueous UO$_{{2}}^{{ 2+}}$ in Fracture [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+            plt.ylabel(f'y$_{1}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         elif k == 1:
-            plt.ylabel(f'Total Aqueous UO$_{{2}}^{{ 2+}}$ in bentonite [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+            plt.ylabel(f'y$_{2}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         elif k == 2:
-            plt.ylabel(f'Total Adsorbed UO$_{{2}}^{{ 2+}}$ in bentonite [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+            plt.ylabel(f'y$_{3}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         
         plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
-        plt.xticks(fontfamily='Arial', fontweight='bold', fontsize=15)
-        plt.yticks(fontfamily='Arial', fontweight='bold', fontsize=15)
+        plt.xticks(fontfamily='Arial', fontsize=15)
+        plt.yticks(fontfamily='Arial', fontsize=15)
 
         plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
     
@@ -164,7 +164,6 @@ if __name__ == '__main__':
         plt.gca().yaxis.set_major_formatter(formatter)
         plt.gca().yaxis.get_offset_text().set_fontsize(12)
         plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
-        plt.gca().yaxis.get_offset_text().set_fontweight('bold')
         plt.xlim(0, 10000)
         
         if k == 0:
@@ -189,7 +188,7 @@ if __name__ == '__main__':
     efflux_df = pd.DataFrame()
 
     # plot x4
-    for j in range(200):
+    for j in range(301):
 
         efflux_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/efflux.csv'
 
@@ -197,7 +196,7 @@ if __name__ == '__main__':
             df = pd.read_csv(efflux_csv_path)
                 
             if j == 197:
-                plt.plot(df.index, df.iloc[:, 0], label=f'Sample {j+1}', color='red')
+                plt.plot(df.index, df.iloc[:, 0], label=f'Sample {j+1}', color='red', zorder=10)
             else:
                 plt.plot(df.index, df.iloc[:, 0], label=f'Sample {j+1}', color=(0.86, 0.86, 1.0))
                 
@@ -211,26 +210,25 @@ if __name__ == '__main__':
 
     print(f'Case loaded: {num}')
     
-    plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 15)
-    plt.ylabel(f'Total UO$_{{2}}^{{ 2+}}$ Efflux [mol]', fontfamily='Arial', fontweight='bold', fontsize = 15)
+    plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 18)
+    plt.ylabel(f'y$_{4}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
 
     plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
     
     plt.xlim(0, 10000)
-    plt.ylim(0, 4e-9)
+    plt.ylim(0, 3e-5)
 
-    plt.xticks(fontfamily='Arial', fontweight='bold', fontsize=15)
-    plt.yticks(fontfamily='Arial', fontweight='bold', fontsize=15)
+    plt.xticks(fontfamily='Arial', fontsize=15)
+    plt.yticks(fontfamily='Arial', fontsize=15)
 
     plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
-    plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-9))
+    plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-5))
 
     formatter = ticker.ScalarFormatter(useMathText=True)
     formatter.set_scientific(True)
     formatter.set_powerlimits((-1, 1))
     plt.gca().yaxis.get_offset_text().set_fontsize(12)
     plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
-    plt.gca().yaxis.get_offset_text().set_fontweight('bold')
     plt.gca().yaxis.set_major_formatter(formatter)
     
     plt.gcf().set_size_inches(6, 5)
@@ -257,26 +255,25 @@ if __name__ == '__main__':
     fig, axs = plt.subplots(4, 1, figsize=(5, 20), constrained_layout=True)
 
     # Set the x-axis label of each subplot
-    axs[3].set_xlabel('Probability Density', fontfamily='Arial', fontweight='bold', fontsize=15)
+    axs[3].set_xlabel('Probability Density', fontfamily='Arial', fontweight='bold', fontsize=18)
 
     # Set the y-axis label of each subplot
-    axs[0].set_ylabel('Total Aqueous UO$_{2}^{2+}$ in Fracture', fontfamily='Arial', fontweight='bold', fontsize=15)
-    axs[1].set_ylabel('Total Aqueous UO$_{2}^{2+}$ in Bentonite', fontfamily='Arial', fontweight='bold', fontsize=15)
-    axs[2].set_ylabel('Total Adsorbed UO$_{2}^{2+}$ in Bentonite', fontfamily='Arial', fontweight='bold', fontsize=15)
-    axs[3].set_ylabel('Total UO$_{2}^{2+}$ Efflux', fontfamily='Arial', fontweight='bold', fontsize=15)
+    axs[0].set_ylabel('y$_{1}$/y$_{1,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
+    axs[1].set_ylabel('y$_{2}$/y$_{2,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
+    axs[2].set_ylabel('y$_{3}$/y$_{3,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
+    axs[3].set_ylabel('y$_{4}$/y$_{4,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
     
     # Plot the pdf of the target values, do not draw a histogram but only the pdf
-    axs[0].hist(df.iloc[:, 0], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
-    axs[1].hist(df.iloc[:, 1], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
-    axs[2].hist(df.iloc[:, 2], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
-    axs[3].hist(df.iloc[:, 3], bins=20, histtype='stepfilled', edgecolor='black', color='grey', density=True, orientation='horizontal')
+    axs[0].hist(df.iloc[:, 0], bins=10, edgecolor='black', color='grey', density=True, orientation='horizontal')
+    axs[1].hist(df.iloc[:, 1], bins=10, edgecolor='black', color='grey', density=True, orientation='horizontal')
+    axs[2].hist(df.iloc[:, 2], bins=10, edgecolor='black', color='grey', density=True, orientation='horizontal')
+    axs[3].hist(df.iloc[:, 3], bins=10, edgecolor='black', color='grey', density=True, orientation='horizontal')
         
     for ax in axs:
-        ax.tick_params(axis='x', which='major', length=6, direction='in')
-        ax.tick_params(axis='y', which='major', length=6, direction='out')
-        ax.set_xlim(0, 10)
-        ax.set_ylim(0, 1)
-        ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
+        ax.tick_params(axis='x', which='major', length=6, direction='in', labelsize=15)
+        ax.tick_params(axis='y', which='major', length=6, direction='out', labelsize=15)
+        ax.set_xlim(0, 5)
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
 
     plt.savefig(target_path.replace('.csv', '_pdf.png'))
     plt.close()
