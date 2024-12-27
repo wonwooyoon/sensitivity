@@ -25,13 +25,13 @@ def lhs_sampling(num_samples, ranges, log_scale_vars, output_csv):
 
 
 if __name__ == "__main__":
-    num_samples = 80
+    num_samples = 8
     ranges = [
         [1e-16, 1e-14],
         [1300, 1900],
         [501925, 507325],
         [0.0, 1.0],
-        [0.0, 0.33]
+        [0.0, 1.0]
     ]
 
     # perm, density, pressure gradient, pyrite factor, mixing ratio

@@ -11,7 +11,7 @@ plt.rcParams['font.family'] = 'Arial'
 
 def plot_histogram(file_path, output_path):
 
-    df = pd.read_csv(f'{file_path}/lhs_sampled_data.csv')
+    df = pd.read_csv(f'{file_path}/inout.csv')
     df = df.iloc[:, 0:5]
     df = df.apply(lambda x: (x - x.min()) / (x.max() - x.min()), axis=0)
 
@@ -34,6 +34,6 @@ def plot_histogram(file_path, output_path):
 
 if __name__ == '__main__':
 
-    file_path = './src/RandomSampling/output'
+    file_path = './src/TargetValueAnalysis/output'
     output_path = './src/TargetValueAnalysis/output'
     plot_histogram(file_path, output_path)
