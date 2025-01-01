@@ -7,3 +7,4 @@ sample_*.h5
 *.tec
 *.pft
 *.out
+*.pth
