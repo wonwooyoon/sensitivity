@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.metrics import r2_score
 import torch
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -49,8 +50,8 @@ class DNN_learning:
         joblib.dump(self.input_scaler, f'{self.output_path}/input_scaler_{self.column_num+5}.joblib')
         joblib.dump(self.output_scaler, f'{self.output_path}/output_scaler_{self.column_num+5}.joblib')
         
-        self.train_x, self.test_x, self.train_Y, self.test_Y = train_test_split(self.input, self.output, test_size=0.2, random_state=42)
-        self.test_x, self.validation_x, self.test_Y, self.validation_Y = train_test_split(self.test_x, self.test_Y, test_size=0.5, random_state=42)
+        self.train_x, self.test_x, self.train_Y, self.test_Y = train_test_split(self.input, self.output, test_size=0.3, random_state=92)
+        self.test_x, self.validation_x, self.test_Y, self.validation_Y = train_test_split(self.test_x, self.test_Y, test_size=0.5, random_state=92)
 
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -64,13 +65,13 @@ class DNN_learning:
         self.test_Y = torch.tensor(self.test_Y.values, device=device, dtype=torch.float)
 
         ##################################
-        node_num = [256]
-        dropout_rate = [0.2]
-        layer_num = [5]
+        node_num = [512, 1024, 2048]
+        dropout_rate = [0.1, 0.2]
+        layer_num = [4, 5, 6]
         initial_lr = 0.001 
-        l2_reg = [1e-5]
-        batch_size = [16]
-        self.epoch = 2000
+        l2_reg = [1e-5, 0]
+        batch_size = [16, 32]
+        self.epoch = 1500
         ##################################
 
         hyperparameters = {
@@ -104,6 +105,7 @@ class DNN_learning:
                 layers.append(torch.nn.Dropout(dropout_rate))
             
             layers.append(torch.nn.Linear(node_num, 1))
+            
             self.model = torch.nn.Sequential(*layers).to(device)
 
             self.loss_fn = torch.nn.MSELoss(reduction='sum')
@@ -115,9 +117,7 @@ class DNN_learning:
                 else:
                     torch.nn.init.zeros_(param)
 
-            #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.epoch/10, eta_min=initial_lr/1000)
-            #scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.5)
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.5, patience=200)
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.96, patience=25)
             lowest_loss = 1000000
         
             train_dataset = torch.utils.data.TensorDataset(self.train_x, self.train_Y)
@@ -163,7 +163,6 @@ class DNN_learning:
                 
                 plt.plot(self.loss_evo, label='train')
                 plt.plot(self.val_loss_evo, label='validation')
-                #plt.yscale('log')
                 plt.legend()
                 plt.savefig(f'{self.output_path}/loss_evo_{self.column_num+5}.png')
                 plt.clf()
@@ -202,8 +201,9 @@ class DNN_learning:
             layers.append(torch.nn.Dropout(dropout_rate))
 
         layers.append(torch.nn.Linear(int(node_num), 1))
+        
         self.model = torch.nn.Sequential(*layers)
-
+        
         self.model.load_state_dict(torch.load(f'{self.output_path}/best_model_{self.column_num+5}.pth'))
         self.model = self.model.cpu()
 
@@ -226,6 +226,11 @@ class DNN_learning:
             test_Y = self.output_scaler.inverse_transform(self.test_Y.cpu().numpy())
             val_Y = self.output_scaler.inverse_transform(self.validation_Y.cpu().numpy())
         
+        # save the ground truth with corresponding prediction as csv
+        pd.DataFrame(np.concatenate([train_Y, train_pred], axis=1)).to_csv(f'{self.output_path}/train_{self.column_num+5}.csv', index=False)
+        pd.DataFrame(np.concatenate([test_Y, test_pred], axis=1)).to_csv(f'{self.output_path}/test_{self.column_num+5}.csv', index=False)
+        pd.DataFrame(np.concatenate([val_Y, val_pred], axis=1)).to_csv(f'{self.output_path}/validation_{self.column_num+5}.csv', index=False)
+
         all_Y = np.concatenate([train_Y, test_Y, val_Y], axis=0)
 
         residuals = test_Y.flatten() - test_pred.flatten()
@@ -235,27 +240,43 @@ class DNN_learning:
         upper = all_Y + z*np.sqrt(sigma)
 
         plt.figure(figsize=(6, 6))
-
-        plt.scatter(train_Y, train_pred, alpha=0.1, color='orange')
-        plt.scatter(test_Y, test_pred, alpha=0.1, color='blue')
-        plt.scatter(val_Y, val_pred, alpha=0.1, color='green')
+        plt.scatter(train_Y, train_pred, alpha=0.6, color='blue', s=40, label = 'train', marker='o')
+        plt.scatter(test_Y, test_pred, alpha=0.6, color='orange', s=40, label = 'test', marker='^')
+        plt.scatter(val_Y, val_pred, alpha=0.6, color='green', s=40, label = 'validation', marker='s')
         plt.xlabel('Actual')
         plt.ylabel('Predicted')
 
-        plt.plot([[0], max(all_Y)], [[0], max(all_Y)], color='red', linestyle='--')
-        plt.plot(all_Y, lower, color='red', linestyle='--', alpha=0.5)
-        plt.plot(all_Y, upper, color='red', linestyle='--', alpha=0.5)
+        # calculate the r^2 value for train, test, and validation
+        r2_train = r2_score(train_Y.flatten(), train_pred.flatten())
+        r2_test = r2_score(test_Y.flatten(), test_pred.flatten())
+        r2_val = r2_score(val_Y.flatten(), val_pred.flatten())
+        
+        plt.text(0.1, 0.95, f'Test R^2: {r2_test:.3f}', ha='left', va='center', transform=plt.gca().transAxes)
+        plt.text(0.1, 0.9, f'Test NRMSE: {np.sqrt(test_loss):.3f}', ha='left', va='center', transform=plt.gca().transAxes)
+        plt.text(0.1, 0.85, f'Validation R^2: {r2_val:.3f}', ha='left', va='center', transform=plt.gca().transAxes)
+        plt.text(0.1, 0.8, f'Validation NRMSE: {np.sqrt(validation_loss):.3f}', ha='left', va='center', transform=plt.gca().transAxes)
+        plt.text(0.1, 0.75, f'Train R^2: {r2_train:.3f}', ha='left', va='center', transform=plt.gca().transAxes)
+        plt.text(0.1, 0.7, f'Train NRMSE: {np.sqrt(train_loss):.3f}', ha='left', va='center', transform=plt.gca().transAxes)
 
-        plt.xlim(0, max(all_Y))
-        plt.ylim(0, max(all_Y))
+        sorted_order = np.argsort(all_Y.T)
+        all_Y = all_Y[sorted_order].flatten()
+        lower = lower[sorted_order].flatten()  
+        upper = upper[sorted_order].flatten()
+
+        plt.plot([[0], [np.max(all_Y)]], [[0], [np.max(all_Y)]], color='black', linestyle='-', linewidth=1.5)
+        plt.plot(all_Y, lower, color='red', linestyle='--', linewidth=1.0, alpha = 0.7)
+        plt.plot(all_Y, upper, color='red', linestyle='--', linewidth=1.0, alpha = 0.7)
+
+        plt.xlim(0, np.max(all_Y))
+        plt.ylim(0, np.max(all_Y))
+        plt.legend()
 
         plt.tight_layout()
         plt.savefig(f'{self.output_path}/prediction_vs_actual_{self.column_num+5}.png')
         plt.clf()
 
     def sensitivity(self):
-        # calculate the sensitivity of the model by permutation importance fator
-
+        
         all_x = torch.cat([self.train_x, self.validation_x, self.test_x], dim=0)
         all_Y = torch.cat([self.train_Y, self.validation_Y, self.test_Y], dim=0)
         
@@ -285,7 +306,7 @@ class DNN_learning:
 
 if __name__ == '__main__':
     
-    for i in range(1):
+    for i in range(4):
         dnn = DNN_learning()
         dnn.data_split('./src/TargetValueAnalysis/output', column_num=i-4)
         dnn.train()

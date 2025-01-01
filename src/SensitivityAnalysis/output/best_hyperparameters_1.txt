@@ -1,6 +1,6 @@
-node_num: 256
-dropout_rate: 0.2
-layer_num: 5
+node_num: 512
+dropout_rate: 0.1
+layer_num: 6
 initial_lr: 0.001
-l2_reg: 1e-05
-batch_size: 16
+l2_reg: 0
+batch_size: 32

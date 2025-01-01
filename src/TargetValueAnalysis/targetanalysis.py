@@ -85,7 +85,7 @@ class TargetValueAnalysis:
     
 if __name__ == '__main__':
 
-    for j in range(401):
+    for j in range(410):
         if os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/sample_{j}_time_10000.0.csv'):
             if not os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/target_values.csv'):
             
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     # plot x1, x2, and x3
     for k in range(3):
         
-        for j in range(401):
+        for j in range(410):
 
             target_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/target_values.csv'
     
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     efflux_df = pd.DataFrame()
 
     # plot x4
-    for j in range(401):
+    for j in range(410):
 
         efflux_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/efflux.csv'
 
