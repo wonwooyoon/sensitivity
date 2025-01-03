@@ -50,8 +50,8 @@ class DNN_learning:
         joblib.dump(self.input_scaler, f'{self.output_path}/input_scaler_{self.column_num+5}.joblib')
         joblib.dump(self.output_scaler, f'{self.output_path}/output_scaler_{self.column_num+5}.joblib')
         
-        self.train_x, self.test_x, self.train_Y, self.test_Y = train_test_split(self.input, self.output, test_size=0.3, random_state=92)
-        self.test_x, self.validation_x, self.test_Y, self.validation_Y = train_test_split(self.test_x, self.test_Y, test_size=0.5, random_state=92)
+        self.train_x, self.test_x, self.train_Y, self.test_Y = train_test_split(self.input, self.output, test_size=0.3, random_state=91)
+        self.test_x, self.validation_x, self.test_Y, self.validation_Y = train_test_split(self.test_x, self.test_Y, test_size=0.5, random_state=91)
 
     def train(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -65,20 +65,20 @@ class DNN_learning:
         self.test_Y = torch.tensor(self.test_Y.values, device=device, dtype=torch.float)
 
         ##################################
-        node_num = [512, 1024, 2048]
-        dropout_rate = [0.1, 0.2]
+        node_num = [1024, 2048]
+        dropout_rate = [0.1]
         layer_num = [4, 5, 6]
-        initial_lr = 0.001 
-        l2_reg = [1e-5, 0]
+        initial_lr = [0.0001] 
+        l2_reg = [0, 1e-5]
         batch_size = [16, 32]
-        self.epoch = 1500
+        self.epoch = 3000
         ##################################
 
         hyperparameters = {
             'node_num': node_num,
             'dropout_rate': dropout_rate,
             'layer_num': layer_num,
-            'initial_lr': [initial_lr],
+            'initial_lr': initial_lr,
             'l2_reg': l2_reg,
             'batch_size': batch_size
         }
@@ -105,6 +105,8 @@ class DNN_learning:
                 layers.append(torch.nn.Dropout(dropout_rate))
             
             layers.append(torch.nn.Linear(node_num, 1))
+            #layers.append(torch.nn.ReLU())
+            layers.append(torch.nn.Softplus())
             
             self.model = torch.nn.Sequential(*layers).to(device)
 
@@ -117,7 +119,7 @@ class DNN_learning:
                 else:
                     torch.nn.init.zeros_(param)
 
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.96, patience=25)
+            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.95, patience=50)
             lowest_loss = 1000000
         
             train_dataset = torch.utils.data.TensorDataset(self.train_x, self.train_Y)
@@ -154,7 +156,7 @@ class DNN_learning:
                     torch.save(self.model.state_dict(), f'{self.output_path}/model.pth')
             
             print(f'lowest validation loss: {lowest_loss}')
-            self.model.load_state_dict(torch.load(f'{self.output_path}/model.pth'))
+            self.model.load_state_dict(torch.load(f'{self.output_path}/model.pth', weights_only=True))
 
             if lowest_loss < best_loss:
                 
@@ -201,10 +203,12 @@ class DNN_learning:
             layers.append(torch.nn.Dropout(dropout_rate))
 
         layers.append(torch.nn.Linear(int(node_num), 1))
-        
+        #layers.append(torch.nn.ReLU())
+        layers.append(torch.nn.Softplus())
+
         self.model = torch.nn.Sequential(*layers)
         
-        self.model.load_state_dict(torch.load(f'{self.output_path}/best_model_{self.column_num+5}.pth'))
+        self.model.load_state_dict(torch.load(f'{self.output_path}/best_model_{self.column_num+5}.pth', weights_only=True))
         self.model = self.model.cpu()
 
         self.model.eval()
@@ -303,10 +307,9 @@ class DNN_learning:
         np.savetxt(f'{self.output_path}/sensitivity_{self.column_num+5}.txt', pif)
         
 
-
 if __name__ == '__main__':
     
-    for i in range(4):
+    for i in [0, 1, 2, 3]:
         dnn = DNN_learning()
         dnn.data_split('./src/TargetValueAnalysis/output', column_num=i-4)
         dnn.train()

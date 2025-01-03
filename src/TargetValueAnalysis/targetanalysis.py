@@ -50,7 +50,7 @@ class TargetValueAnalysis:
                 line_data = line.split()
                 efflux_total_uo2 = [float(line_data[i]) for i in efflux_total_uo2_index]
                 efflux_qlx = [float(line_data[i]) for i in efflux_qlx_index]
-                efflux = [efflux_total_uo2[i] * efflux_qlx[i] * 1 / 1000 for i in range(len(efflux_total_uo2))]
+                efflux = [efflux_total_uo2[i] * efflux_qlx[i] for i in range(len(efflux_total_uo2))]
                 efflux_sum = sum(efflux)            
                 result.append(efflux_sum+result[-1])
             return result 
@@ -96,6 +96,7 @@ if __name__ == '__main__':
                 efflux_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/efflux.csv'
 
                 tva.calculate_efflux(efflux_path, efflux_csv_path)
+                print(f'Efflux calculated for sample {j}')
         
                 for i in range(0, 101):
     
@@ -216,13 +217,13 @@ if __name__ == '__main__':
     plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
     
     plt.xlim(0, 10000)
-    #plt.ylim(0, 3e-5)
+    plt.ylim(0, 3e-2)
 
     plt.xticks(fontfamily='Arial', fontsize=15)
     plt.yticks(fontfamily='Arial', fontsize=15)
 
     plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
-    plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-5))
+    plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-2))
 
     formatter = ticker.ScalarFormatter(useMathText=True)
     formatter.set_scientific(True)
