@@ -61,7 +61,7 @@ class RatioEquilibrium:
 mkdir -p ./src/RatioCalculation/output
 base_dir="$(pwd)"
 
-for i in {398..405}; do
+for i in {406..409}; do
   infile="${base_dir}/src/RatioCalculation/output/ratio_calculation_${i}.in"
   echo "Running pflotran on $infile..."
   mpirun -n 1 /home/geofluids/pflotran/src/pflotran/pflotran -input_prefix "${infile%.*}"
