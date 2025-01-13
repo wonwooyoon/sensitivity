@@ -85,7 +85,7 @@ class TargetValueAnalysis:
     
 if __name__ == '__main__':
 
-    for j in range(410):
+    for j in range(420):
         if os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/sample_{j}_time_10000.0.csv'):
             if not os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j}/target_values.csv'):
             
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     # plot x1, x2, and x3
     for k in range(3):
         
-        for j in range(410):
+        for j in range(420):
 
             target_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/target_values.csv'
     
@@ -147,11 +147,11 @@ if __name__ == '__main__':
         plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         
         if k == 0:
-            plt.ylabel(f'y$_{1}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
+            plt.ylabel(f'U$_{{frac}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         elif k == 1:
-            plt.ylabel(f'y$_{2}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
+            plt.ylabel(f'U$_{{bent}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         elif k == 2:
-            plt.ylabel(f'y$_{3}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
+            plt.ylabel(f'U$_{{sorb}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
         
         plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
         plt.xticks(fontfamily='Arial', fontsize=15)
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     efflux_df = pd.DataFrame()
 
     # plot x4
-    for j in range(410):
+    for j in range(420):
 
         efflux_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/efflux.csv'
 
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     print(f'Case loaded: {num}')
     
     plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 18)
-    plt.ylabel(f'y$_{4}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
+    plt.ylabel(f'U$_{{out}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
 
     plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
     

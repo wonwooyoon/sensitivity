@@ -60,14 +60,14 @@ def read_hdf5_file(input_path, output_path):
 if __name__ == '__main__':
 
 ###########################################################################################
-    # read every sample file in ./src/RunPFLOTRAN/output/sample_*/sample_*.h5
-    for i in range(410):
+    # # read every sample file in ./src/RunPFLOTRAN/output/sample_*/sample_*.h5
+    # for i in range(420):
         
-        if os.path.exists(f'/mnt/d/WWY/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{i}'):
-            if not os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}'):
-                print(f'Reading sample_{i}\n')
-                os.makedirs(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}', exist_ok=True)
-                read_hdf5_file(f'/mnt/d/WWY/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{i}/sample_{i}.h5', f'./src/TargetValueAnalysis/output/sample_{i}/sample_{i}')
+    #     if os.path.exists(f'/mnt/d/WWY/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{i}'):
+    #         if not os.path.exists(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}'):
+    #             print(f'Reading sample_{i}\n')
+    #             os.makedirs(f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{i}', exist_ok=True)
+    #             read_hdf5_file(f'/mnt/d/WWY/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_{i}/sample_{i}.h5', f'./src/TargetValueAnalysis/output/sample_{i}/sample_{i}')
 ###########################################################################################
 
 
@@ -82,9 +82,9 @@ if __name__ == '__main__':
 
 
 ###########################################################################################
-    # # find average velocity of specific material
-    # target_material = 2 # 1 = fracture, 2 = bentonite, 3 = source
-    # avg_velocity = avg_velocity_specific_material(f'/mnt/d/WWY/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_198/sample_198.h5', target_material)
-    # print(f'Average velocity of {target_material} is {avg_velocity} m/yr, {avg_velocity / 3600 / 24 / 365} m/s')
+    # find average velocity of specific material
+    target_material = 1 # 1 = fracture, 2 = bentonite, 3 = source
+    avg_velocity = avg_velocity_specific_material(f'/mnt/d/WWY/Personal/0. Paperwork/3. ML_sensitivity_analysis/Model/output_export/sample_198/sample_198.h5', target_material)
+    print(f'Average velocity of {target_material} is {avg_velocity} m/yr, {avg_velocity / 3600 / 24 / 365} m/s')
 
 ###########################################################################################

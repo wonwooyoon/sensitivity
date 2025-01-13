@@ -87,93 +87,94 @@ class DNN_learning:
 
         best_loss = 1000000
         self.best_hyperparameters = []
+        self.loss_fn = torch.nn.MSELoss(reduction='sum')
 
-        for i, (node_num, dropout_rate, layer_num, initial_lr, l2_reg, batch_size) in enumerate(hyperparameter_combinations):
+        # for i, (node_num, dropout_rate, layer_num, initial_lr, l2_reg, batch_size) in enumerate(hyperparameter_combinations):
 
-            print(f'Hyperparameter combination {i+1}/{len(hyperparameter_combinations)}')
-            print(f'node_num: {node_num}, dropout_rate: {dropout_rate}, layer_num: {layer_num}, initial_lr: {initial_lr}, l2_reg: {l2_reg}, batch_size: {batch_size}')
+        #     print(f'Hyperparameter combination {i+1}/{len(hyperparameter_combinations)}')
+        #     print(f'node_num: {node_num}, dropout_rate: {dropout_rate}, layer_num: {layer_num}, initial_lr: {initial_lr}, l2_reg: {l2_reg}, batch_size: {batch_size}')
 
-            layers = []
-            input_size = self.train_x.size(1)
-            layers.append(torch.nn.Linear(input_size, node_num))
-            layers.append(torch.nn.GELU())
-            layers.append(torch.nn.Dropout(dropout_rate))
+        #     layers = []
+        #     input_size = self.train_x.size(1)
+        #     layers.append(torch.nn.Linear(input_size, node_num))
+        #     layers.append(torch.nn.GELU())
+        #     layers.append(torch.nn.Dropout(dropout_rate))
 
-            for _ in range(layer_num-1):
-                layers.append(torch.nn.Linear(node_num, node_num))
-                layers.append(torch.nn.GELU())
-                layers.append(torch.nn.Dropout(dropout_rate))
+        #     for _ in range(layer_num-1):
+        #         layers.append(torch.nn.Linear(node_num, node_num))
+        #         layers.append(torch.nn.GELU())
+        #         layers.append(torch.nn.Dropout(dropout_rate))
             
-            layers.append(torch.nn.Linear(node_num, 1))
-            #layers.append(torch.nn.ReLU())
-            layers.append(torch.nn.Softplus())
+        #     layers.append(torch.nn.Linear(node_num, 1))
+        #     #layers.append(torch.nn.ReLU())
+        #     layers.append(torch.nn.Softplus())
             
-            self.model = torch.nn.Sequential(*layers).to(device)
+        #     self.model = torch.nn.Sequential(*layers).to(device)
 
-            self.loss_fn = torch.nn.MSELoss(reduction='sum')
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=initial_lr, weight_decay=l2_reg)
+        #     self.loss_fn = torch.nn.MSELoss(reduction='sum')
+        #     self.optimizer = torch.optim.Adam(self.model.parameters(), lr=initial_lr, weight_decay=l2_reg)
 
-            for param in self.model.parameters():
-                if len(param.size()) == 2:
-                    torch.nn.init.xavier_uniform_(param)
-                else:
-                    torch.nn.init.zeros_(param)
+        #     for param in self.model.parameters():
+        #         if len(param.size()) == 2:
+        #             torch.nn.init.xavier_uniform_(param)
+        #         else:
+        #             torch.nn.init.zeros_(param)
 
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.95, patience=50)
-            lowest_loss = 1000000
+        #     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', factor=0.95, patience=50)
+        #     lowest_loss = 1000000
         
-            train_dataset = torch.utils.data.TensorDataset(self.train_x, self.train_Y)
-            train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        #     train_dataset = torch.utils.data.TensorDataset(self.train_x, self.train_Y)
+        #     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-            for t in tqdm(range(self.epoch)):
+        #     for t in tqdm(range(self.epoch)):
                 
-                self.model.train()
-                for batch_x, batch_Y in train_loader:
-                    y_pred = self.model(batch_x)
-                    loss = self.loss_fn(y_pred, batch_Y)
-                    loss.backward()
-                    self.optimizer.step()
-                    self.optimizer.zero_grad()
+        #         self.model.train()
+        #         for batch_x, batch_Y in train_loader:
+        #             y_pred = self.model(batch_x)
+        #             loss = self.loss_fn(y_pred, batch_Y)
+        #             loss.backward()
+        #             self.optimizer.step()
+        #             self.optimizer.zero_grad()
 
-                self.model.eval()
-                train_loss = self.loss_fn(self.model(self.train_x), self.train_Y)
-                validation_loss = self.loss_fn(self.model(self.validation_x), self.validation_Y)
-                scheduler.step(validation_loss)
+        #         self.model.eval()
+        #         train_loss = self.loss_fn(self.model(self.train_x), self.train_Y)
+        #         validation_loss = self.loss_fn(self.model(self.validation_x), self.validation_Y)
+        #         scheduler.step(validation_loss)
 
-                if t % 25 == 0:
-                    tqdm.write(f'epoch {t}: train_loss {train_loss.item() / len(self.train_x)}, val_loss {validation_loss.item() / len(self.validation_x)}, lr = {self.optimizer.param_groups[0]["lr"]}')
+        #         if t % 25 == 0:
+        #             tqdm.write(f'epoch {t}: train_loss {train_loss.item() / len(self.train_x)}, val_loss {validation_loss.item() / len(self.validation_x)}, lr = {self.optimizer.param_groups[0]["lr"]}')
 
-                with torch.no_grad():
-                    if t == 0:
-                        self.loss_evo = [train_loss.item() / len(self.train_x)]
-                        self.val_loss_evo = [validation_loss.item() / len(self.validation_x)]
-                    else:
-                        self.loss_evo.append(train_loss.item() / len(self.train_x))
-                        self.val_loss_evo.append(validation_loss.item() / len(self.validation_x))
+        #         with torch.no_grad():
+        #             if t == 0:
+        #                 self.loss_evo = [train_loss.item() / len(self.train_x)]
+        #                 self.val_loss_evo = [validation_loss.item() / len(self.validation_x)]
+        #             else:
+        #                 self.loss_evo.append(train_loss.item() / len(self.train_x))
+        #                 self.val_loss_evo.append(validation_loss.item() / len(self.validation_x))
 
-                if validation_loss.item() / len(self.validation_x) < lowest_loss:
-                    lowest_loss = validation_loss.item() / len(self.validation_x)
-                    torch.save(self.model.state_dict(), f'{self.output_path}/model.pth')
+        #         if validation_loss.item() / len(self.validation_x) < lowest_loss:
+        #             lowest_loss = validation_loss.item() / len(self.validation_x)
+        #             torch.save(self.model.state_dict(), f'{self.output_path}/model.pth')
             
-            print(f'lowest validation loss: {lowest_loss}')
-            self.model.load_state_dict(torch.load(f'{self.output_path}/model.pth', weights_only=True))
+        #     print(f'lowest validation loss: {lowest_loss}')
+        #     self.model.load_state_dict(torch.load(f'{self.output_path}/model.pth', weights_only=True))
 
-            if lowest_loss < best_loss:
+        #     if lowest_loss < best_loss:
                 
-                best_loss = lowest_loss
-                self.best_hyperparameters = [node_num, dropout_rate, layer_num, initial_lr, l2_reg, batch_size]
+        #         best_loss = lowest_loss
+        #         self.best_hyperparameters = [node_num, dropout_rate, layer_num, initial_lr, l2_reg, batch_size]
                 
-                plt.plot(self.loss_evo, label='train')
-                plt.plot(self.val_loss_evo, label='validation')
-                plt.legend()
-                plt.savefig(f'{self.output_path}/loss_evo_{self.column_num+5}.png')
-                plt.clf()
+        #         plt.plot(self.loss_evo, label='train')
+        #         plt.plot(self.val_loss_evo, label='validation')
+        #         plt.legend()
+        #         plt.savefig(f'{self.output_path}/loss_evo_{self.column_num+5}.png')
+        #         plt.clf()
                 
-                with open(f'{self.output_path}/best_hyperparameters_{self.column_num+5}.txt', 'w') as f:
-                    f.write('\n'.join([f'{k}: {v}' for k, v in zip(['node_num', 'dropout_rate', 'layer_num', 'initial_lr', 'l2_reg', 'batch_size'], self.best_hyperparameters)]))
-                f.close()
+        #         with open(f'{self.output_path}/best_hyperparameters_{self.column_num+5}.txt', 'w') as f:
+        #             f.write('\n'.join([f'{k}: {v}' for k, v in zip(['node_num', 'dropout_rate', 'layer_num', 'initial_lr', 'l2_reg', 'batch_size'], self.best_hyperparameters)]))
+        #         f.close()
 
-                torch.save(self.model.state_dict(), f'{self.output_path}/best_model_{self.column_num+5}.pth')
+        #         torch.save(self.model.state_dict(), f'{self.output_path}/best_model_{self.column_num+5}.pth')
 
         # after the learning, unload the data and model from GPU to CPU
         self.train_x = self.train_x.cpu()
@@ -281,27 +282,27 @@ class DNN_learning:
 
     def sensitivity(self):
         
-        all_x = torch.cat([self.train_x, self.validation_x, self.test_x], dim=0)
+        all_x = torch.cat([self.train_x, self.validation_x , self.test_x], dim=0)
         all_Y = torch.cat([self.train_Y, self.validation_Y, self.test_Y], dim=0)
         
-        base_loss = self.loss_fn(self.model(all_x), all_Y)
+        base_loss = self.loss_fn(self.model(all_x), all_Y).item() / len(all_Y)
 
         pif = []
         for i in range(all_x.size(1)):
             perm_x = all_x.clone()
-            sum_permute_loss = 0
-            for _ in range(100):
+            importance = []
+
+            for _ in range(1000):
                 permute = torch.randperm(perm_x.size(0))
                 perm_x[:, i] = perm_x[permute, i]
-                permute_loss = self.loss_fn(self.model(perm_x), all_Y)
-                sum_permute_loss += permute_loss
-            permute_loss = sum_permute_loss / 100
-            
-            pif.append((permute_loss / base_loss).detach().numpy())
+                permute_loss = self.loss_fn(self.model(perm_x), all_Y).item() / len(all_Y)
+                importance = np.append(importance, (permute_loss - base_loss)/base_loss)
+
+            pif.append(np.mean(importance))
 
         pif = np.array(pif)
         print(pif)
-        plt.barh(self.input.columns, pif)
+        plt.boxplot(pif.T, vert=False)
         plt.savefig(f'{self.output_path}/sensitivity_{self.column_num+5}.png')
         plt.clf()
         np.savetxt(f'{self.output_path}/sensitivity_{self.column_num+5}.txt', pif)

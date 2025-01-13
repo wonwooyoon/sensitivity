@@ -78,9 +78,9 @@ if __name__ == "__main__":
 
     print("Model loaded and ready to use.")
 
-    x1 = 5.0e-15
-    x3 = 504025
-    x5 = 0.5
+    x1 = 7.0e-15
+    x3 = 505325
+    x5 = 0.7
 
     value_y1_mesh, value_y1_row = find_range_single(model_1, x1, x3, x5, 1)
     #value_y2_mesh, value_y2_row = find_range_single(model_2, x1, x3, x5, 2)
