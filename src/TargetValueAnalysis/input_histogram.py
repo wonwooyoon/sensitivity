@@ -19,9 +19,15 @@ def plot_histogram(file_path, output_path):
     for i in range(5):
         ax[i].hist(df.iloc[:, i], bins=10, edgecolor='black', color='grey', density=True, orientation='horizontal')
         ax[i].set_ylabel(f'x$_{{{i+1}}}$/x$_{{{i+1}}}$$_{{,max}}$', fontfamily='Arial', fontweight='bold', fontsize=18)
-        ax[i].tick_params(axis='x', direction='in', labelsize=15)
-        ax[i].tick_params(axis='y', direction='out', labelsize=15)
+        ax[i].tick_params(axis='x', direction='in', labelsize=20)
+        ax[i].tick_params(axis='y', direction='out', labelsize=20)
         ax[i].set_xlim(0, 1.2)
+        ax[i].spines['top'].set_linewidth(2)
+        ax[i].spines['right'].set_linewidth(2)
+        ax[i].spines['bottom'].set_linewidth(2)
+        ax[i].spines['left'].set_linewidth(2)
+        ax[i].xaxis.set_major_locator(ticker.MultipleLocator(0.4))
+        ax[i].yaxis.set_major_locator(ticker.MultipleLocator(0.5))
     
     ax[-1].set_xlabel('Probability Density', fontfamily='Arial', fontweight='bold', fontsize=18)
 

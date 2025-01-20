@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     # plot x1, x2, and x3
     for k in range(3):
-        
+
         for j in range(420):
 
             target_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/target_values.csv'
@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 if j == 197:
                     plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color='red', zorder=10)
                 else:
-                    plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color=(0.86, 0.86, 1.0))
+                    plt.plot(df.index * 100, df.iloc[:, k], label=f'Sample {j+1}', color=(0.86, 0.86, 1.0), linewidth=0.5)
                 
                 num += 1
                 
@@ -143,52 +143,55 @@ if __name__ == '__main__':
 
         print(f'Case loaded: {num}')
         num = 0
-
-        plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 18)
-        
-        if k == 0:
-            plt.ylabel(f'U$_{{frac}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
-        elif k == 1:
-            plt.ylabel(f'U$_{{bent}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
-        elif k == 2:
-            plt.ylabel(f'U$_{{sorb}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
-        
-        plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
-        plt.xticks(fontfamily='Arial', fontsize=15)
-        plt.yticks(fontfamily='Arial', fontsize=15)
-
-        plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
     
-        formatter = ticker.ScalarFormatter(useMathText=True)
-        formatter.set_scientific(True)
-        formatter.set_powerlimits((-1, 1))
-        plt.gca().yaxis.set_major_formatter(formatter)
-        plt.gca().yaxis.get_offset_text().set_fontsize(12)
-        plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
-        plt.xlim(0, 10000)
+        plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize=25)
         
         if k == 0:
+            plt.ylabel(f'U$_{{frac}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize=22)
             plt.ylim(0, 5e-3)
-        elif k == 1:
-            plt.ylim(0, 1.2e-4)
-        elif k == 2:
-            plt.ylim(0, 10)
-
-        if k == 0:
             plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-3))
         elif k == 1:
-            plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(2e-5))
+            plt.ylabel(f'U$_{{bent}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize=22)
+            plt.ylim(0, 1.2e-4)
+            plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(3e-5))
         elif k == 2:
+            plt.ylabel(f'U$_{{sorb}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize=22)
+            plt.ylim(0, 10)
             plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(2))
+
+        plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x:,.0f}'))
+        plt.xticks(fontfamily='Arial', fontweight='bold', fontsize=20)
+        plt.yticks(fontfamily='Arial', fontweight='bold', fontsize=20)
+
+        plt.gca().spines['top'].set_linewidth(2)
+        plt.gca().spines['right'].set_linewidth(2)
+        plt.gca().spines['bottom'].set_linewidth(2)
+        plt.gca().spines['left'].set_linewidth(2)
+        plt.gca().tick_params(axis='both', which='major', width=2, length=6, direction='in')
+
+        plt.gca().set_axisbelow(False)
         
-        plt.gcf().set_size_inches(6, 5)
-        plt.gcf().set_dpi(600)
+        formatter = ticker.ScalarFormatter(useMathText=False)
+        formatter.set_scientific(True)
+        formatter.set_powerlimits((-1, 1))    
+        formatter.format = lambda x, pos: f'{x:.1f}'
+        plt.gca().yaxis.set_major_formatter(formatter)
+        plt.gca().yaxis.get_offset_text().set_fontsize(18)
+        plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
+        plt.gca().yaxis.get_offset_text().set_fontweight('bold')
+        
+        plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(2500))
+        plt.xlim(0, 10000)    
+        
+        plt.gcf().set_size_inches(6, 6)
+        plt.gcf().set_dpi(1200)
         plt.savefig(f'./src/TargetValueAnalysis/output/target_value_{k+1}.png')
         plt.close()
 
     efflux_df = pd.DataFrame()
 
     # plot x4
+    
     for j in range(420):
 
         efflux_csv_path = f'/home/geofluids/research/sensitivity/src/TargetValueAnalysis/output/sample_{j+1}/efflux.csv'
@@ -210,30 +213,37 @@ if __name__ == '__main__':
     target_df = pd.concat([target_df, efflux_df], axis=1)
 
     print(f'Case loaded: {num}')
-    
-    plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize = 18)
-    plt.ylabel(f'U$_{{out}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize = 18)
 
-    plt.gca().tick_params(axis='both', which='major', length=6, direction='in')
-    
-    plt.xlim(0, 10000)
+    plt.xlabel('Time [yr]', fontfamily='Arial', fontweight='bold', fontsize=25)
+    plt.ylabel(f'U$_{{out}}$ [mol]', fontfamily='Arial', fontweight='bold', fontsize=22)
     plt.ylim(0, 3e-2)
-
-    plt.xticks(fontfamily='Arial', fontsize=15)
-    plt.yticks(fontfamily='Arial', fontsize=15)
-
-    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{int(x):,}'))
     plt.gca().yaxis.set_major_locator(ticker.MultipleLocator(1e-2))
+    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x:,.0f}'))
+    plt.xticks(fontfamily='Arial', fontweight='bold', fontsize=20)
+    plt.yticks(fontfamily='Arial', fontweight='bold', fontsize=20)
+
+    plt.gca().spines['top'].set_linewidth(2)
+    plt.gca().spines['right'].set_linewidth(2)
+    plt.gca().spines['bottom'].set_linewidth(2)
+    plt.gca().spines['left'].set_linewidth(2)
+    plt.gca().tick_params(axis='both', which='major', width=2, length=6, direction='in')
+
+    plt.gca().set_axisbelow(False)
 
     formatter = ticker.ScalarFormatter(useMathText=True)
     formatter.set_scientific(True)
     formatter.set_powerlimits((-1, 1))
-    plt.gca().yaxis.get_offset_text().set_fontsize(12)
-    plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
+    formatter.format = lambda x, pos: f'{x:.1f}'
     plt.gca().yaxis.set_major_formatter(formatter)
-    
-    plt.gcf().set_size_inches(6, 5)
-    plt.gcf().set_dpi(600)
+    plt.gca().yaxis.get_offset_text().set_fontsize(18)
+    plt.gca().yaxis.get_offset_text().set_fontfamily('Arial')
+    plt.gca().yaxis.get_offset_text().set_fontweight('bold')
+
+    plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(2500))
+    plt.xlim(0, 10000)
+
+    plt.gcf().set_size_inches(6, 6)
+    plt.gcf().set_dpi(1200)
 
     plt.savefig('./src/TargetValueAnalysis/output/target_value_4.png')
     plt.close()
@@ -256,13 +266,13 @@ if __name__ == '__main__':
     fig, axs = plt.subplots(4, 1, figsize=(5, 20), constrained_layout=True)
 
     # Set the x-axis label of each subplot
-    axs[3].set_xlabel('Probability Density', fontfamily='Arial', fontweight='bold', fontsize=18)
+    axs[3].set_xlabel('Probability Density', fontfamily='Arial', fontweight='bold', fontsize=25)
 
     # Set the y-axis label of each subplot
-    axs[0].set_ylabel('y$_{1}$/y$_{1,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
-    axs[1].set_ylabel('y$_{2}$/y$_{2,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
-    axs[2].set_ylabel('y$_{3}$/y$_{3,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
-    axs[3].set_ylabel('y$_{4}$/y$_{4,max}$', fontfamily='Arial', fontweight='bold', fontsize=18)
+    axs[0].set_ylabel('y$_{1}$/y$_{1,max}$', fontfamily='Arial', fontweight='bold', fontsize=22)
+    axs[1].set_ylabel('y$_{2}$/y$_{2,max}$', fontfamily='Arial', fontweight='bold', fontsize=22)
+    axs[2].set_ylabel('y$_{3}$/y$_{3,max}$', fontfamily='Arial', fontweight='bold', fontsize=22)
+    axs[3].set_ylabel('y$_{4}$/y$_{4,max}$', fontfamily='Arial', fontweight='bold', fontsize=22)
     
     # Plot the pdf of the target values, do not draw a histogram but only the pdf
     axs[0].hist(df.iloc[:, 0], bins=10, edgecolor='black', color='grey', density=True, orientation='horizontal')
@@ -271,11 +281,27 @@ if __name__ == '__main__':
     axs[3].hist(df.iloc[:, 3], bins=10, edgecolor='black', color='grey', density=True, orientation='horizontal')
         
     for ax in axs:
-        ax.tick_params(axis='x', which='major', length=6, direction='in', labelsize=15)
-        ax.tick_params(axis='y', which='major', length=6, direction='out', labelsize=15)
-        ax.set_xlim(0, 5)
-        ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+        ax.tick_params(axis='x', which='major', width=2, length=6, direction='in', labelsize=20)
+        ax.tick_params(axis='y', which='major', width=2, length=6, direction='in', labelsize=20)
+        for label in ax.get_xticklabels():
+            label.set_fontsize(20)
+            label.set_fontfamily('Arial')
+            label.set_fontweight('bold')
+        for label in ax.get_yticklabels():
+            label.set_fontsize(20)
+            label.set_fontfamily('Arial')
+            label.set_fontweight('bold')
+        ax.set_xlim(0, 8)
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(2))
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: f'{x:.1f}'))
+        ax.spines['top'].set_linewidth(2)
+        ax.spines['right'].set_linewidth(2)
+        ax.spines['bottom'].set_linewidth(2)
+        ax.spines['left'].set_linewidth(2)
+        ax.set_axisbelow(False)
 
+    #plt.tight_layout()
+    plt.gcf().set_dpi(1200)
     plt.savefig(target_path.replace('.csv', '_pdf.png'))
     plt.close()
 
