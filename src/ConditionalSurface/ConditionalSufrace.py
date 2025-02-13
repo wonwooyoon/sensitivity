@@ -39,9 +39,14 @@ def load_model(model_path, hyperparameters_path):
 
 def find_range_single(model, x1, x3, x5, num):
 
+    # x1_range = np.linspace(1E-14, 1E-16, 101)
+    # x3_range = np.linspace(501925, 507325, 101)
+    # value_mesh = pd.DataFrame(index=x1_range, columns=x3_range)
+    # value_row = pd.DataFrame(index=range(len(x1_range)*len(x3_range)), columns=['x1', 'x3', 'y'])
+    
     x2_range = np.linspace(1300, 1900, 101)
-    x4_range = np.linspace(0.00, 1.00, 101)
-    value_mesh = pd.DataFrame(index=x4_range, columns=x2_range)
+    x4_range = np.linspace(0, 1, 101)
+    value_mesh = pd.DataFrame(index=x2_range, columns=x4_range)
     value_row = pd.DataFrame(index=range(len(x2_range)*len(x4_range)), columns=['x2', 'x4', 'y'])
     
     input_scaler = load(f'./src/SensitivityAnalysis/output/input_scaler_{num}.joblib')
@@ -78,41 +83,58 @@ if __name__ == "__main__":
 
     print("Model loaded and ready to use.")
 
-    x1 = 7.0e-15
-    x3 = 505325
+    x1 = 6.0e-15
+    x3 = 503325
     x5 = 0.7
 
+    # x2 = 1400
+    # x4 = 0.2
+    # x5 = 0.7
+
+# check time
+    import time
+    start = time.time()
     value_y1_mesh, value_y1_row = find_range_single(model_1, x1, x3, x5, 1)
-    #value_y2_mesh, value_y2_row = find_range_single(model_2, x1, x3, x5, 2)
-    #value_y3_mesh, value_y3_row = find_range_single(model_3, x1, x3, x5, 3)
+    print(time.time()-start)
+    start = time.time()
+    value_y2_mesh, value_y2_row = find_range_single(model_2, x1, x3, x5, 2)
+    print(time.time()-start)
+    start = time.time()
+    value_y3_mesh, value_y3_row = find_range_single(model_3, x1, x3, x5, 3)
+    print(time.time()-start)
+    start = time.time()
     value_y4_mesh, value_y4_row = find_range_single(model_4, x1, x3, x5, 4)
+    print(time.time()-start)
+    start = time.time()
 
-    value_mesh = value_y1_mesh + value_y4_mesh
-    value_row = value_y1_row + value_y4_row
+    #value_mesh = value_y1_mesh + value_y4_mesh
+    #value_row = value_y1_row + value_y4_row
 
+    start = time.time()
     value_y1_row.to_csv('./src/ConditionalSurface/output/value_y1.csv')
-    #value_y2_row.to_csv('./src/ConditionalSurface/output/value_y2.csv')
-    #value_y3_row.to_csv('./src/ConditionalSurface/output/value_y3.csv')
+    value_y2_row.to_csv('./src/ConditionalSurface/output/value_y2.csv')
+    value_y3_row.to_csv('./src/ConditionalSurface/output/value_y3.csv')
     value_y4_row.to_csv('./src/ConditionalSurface/output/value_y4.csv')
+    print(time.time()-start)
 
-    x2_range = value_mesh.columns.to_numpy().astype(float)
-    x4_range = value_mesh.index.to_numpy().astype(float)
+    #x2_range = value_mesh.columns.to_numpy().astype(float)
+    #x4_range = value_mesh.index.to_numpy().astype(float)
 
-    x2, x4 = np.meshgrid(x2_range, x4_range)
+    # x2, x4 = np.meshgrid(x2_range, x4_range)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot_surface(x2, x4, value_mesh, cmap='viridis')
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.plot_surface(x2, x4, value_mesh, cmap='viridis')
 
-    ax.set_xlabel('x2')
-    ax.set_ylabel('x4')
-    ax.set_zlabel('Output Value')
-    ax.set_title('3D Surface Plot of Output Value for x2 and x4')
+    # ax.set_xlabel('x2')
+    # ax.set_ylabel('x4')
+    # ax.set_zlabel('Output Value')
+    # ax.set_title('3D Surface Plot of Output Value for x2 and x4')
 
-    ax.invert_yaxis()  # Invert the y-axis to reverse the direction of x4
+    # ax.invert_yaxis()  # Invert the y-axis to reverse the direction of x4
 
-    plt.savefig('./src/ConditionalSurface/output/value_3d.png')
-    plt.clf()
+    # plt.savefig('./src/ConditionalSurface/output/value_3d.png')
+    # plt.clf()
 
 
 

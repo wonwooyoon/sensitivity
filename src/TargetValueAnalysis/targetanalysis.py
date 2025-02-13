@@ -25,10 +25,10 @@ class TargetValueAnalysis:
 
     def calculate_aqueous(self):
         material_1 = self.data[self.data['Material ID'] == 1]
-        self.aqueous_granite = (material_1['Total UO2++ [m]'] * material_1['Volume [m^3]'] * material_1['Porosity']).sum()
+        self.aqueous_granite = (material_1['Total UO2++ [M]'] * material_1['Volume [m^3]'] * material_1['Porosity']).sum()
         
         material_2 = self.data[self.data['Material ID'] == 2]
-        self.aqueous_bentonite = (material_2['Total UO2++ [m]'] * material_2['Volume [m^3]'] * material_2['Porosity']).sum()
+        self.aqueous_bentonite = (material_2['Total UO2++ [M]'] * material_2['Volume [m^3]'] * material_2['Porosity']).sum()
     
     def calculate_adsorbed(self):
         material_2 = self.data[self.data['Material ID'] == 2]
